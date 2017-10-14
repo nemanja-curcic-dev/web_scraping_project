@@ -12,7 +12,7 @@ from scrapper.helpers import find_number, find_floor
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
                     format='%(asctime)s - %(levelname)s: \n- %(message)s',
-                    level=logging.INFO)
+                    level=logging.WARNING)
 
 
 class RequestBs:
