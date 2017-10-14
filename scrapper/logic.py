@@ -188,10 +188,25 @@ class GetData:
                 if template["origSource"] == link:
                     current_json_template = template
 
-            self.add_to_equipment(current_json_template)
-            self.add_price_data(current_json_template)
-            self.add_main_data(current_json_template)
+            #self.add_to_equipment(current_json_template)
+            #self.add_price_data(current_json_template)
+            #self.add_main_data(current_json_template)
+            self.add_images_data(current_json_template)
             print("Current page: ", link)
+
+    def add_images_data(self, current_template):
+        """Adds images urls to the template"""
+        base_url = "http://www.urbanhome.ch"
+
+        wrapper_images = self.rbs.bs.find('div', {"id": "th"})
+
+        try:
+            for a in wrapper_images.findAll("a"):
+                image_url = base_url + a["href"]
+                current_template["media"]["gallery"].append(image_url)
+        except AttributeError as e:
+            logging.error(current_template["origSource"] + " - no images found - "
+                          + str(e) + "\n - " + self.add_images_data.__name__)
 
     def add_price_data(self, current_template):
         """Adds data about price to the template"""
@@ -308,6 +323,3 @@ class GetData:
         except AttributeError as e:
             logging.error(current_template["origSource"] + ' - ' + str(e) +
                           '\n - Error occurred at: ' + self.add_to_equipment.__name__)
-
-
-
