@@ -3,7 +3,7 @@ from scrapper.headers_payload_etc import payload, request_headers, json_template
 
 request_bs = RequestBs(payload, request_headers,
             'http://www.urbanhome.ch/Search/DoSearch',
-            type="1", category="1", region="40")
+            type="1", category="1")
 
 get_data_object = GetData(json_template, request_bs)
 

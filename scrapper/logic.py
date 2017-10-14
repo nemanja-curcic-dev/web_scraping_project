@@ -188,11 +188,22 @@ class GetData:
                 if template["origSource"] == link:
                     current_json_template = template
 
-            #self.add_to_equipment(current_json_template)
-            #self.add_price_data(current_json_template)
-            #self.add_main_data(current_json_template)
-            self.add_images_data(current_json_template)
+            # self.add_to_equipment(current_json_template)
+            # self.add_price_data(current_json_template)
+            # self.add_main_data(current_json_template)
+            # self.add_images_data(current_json_template)
+            self.add_description_data(current_json_template)
             print("Current page: ", link)
+
+    def add_description_data(self, current_template):
+        """Add description to template"""
+
+        div = self.rbs.bs.find("div", {"class": "fl pr c m71", "id": "xGd"}).find("div", {"class": "cb pb15"})
+
+        if div is None:
+            logging.warning(current_template["origSource"])
+
+        print(div)
 
     def add_images_data(self, current_template):
         """Adds images urls to the template"""
