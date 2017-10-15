@@ -10,10 +10,12 @@ def find_number(s):
 
 def find_number_concatenated(s):
     """Finds the number if is next to some other character"""
-    floor = 0
+    floor = ""
     for c in s:
         if c.isdigit():
             floor += c
+    if floor == "":
+        floor = 0
     return floor
 
 if __name__ == '__main__':
