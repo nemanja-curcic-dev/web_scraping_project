@@ -173,10 +173,7 @@ request_headers = {
     'Content-Type': 'application/json; charset=UTF-8;',
     'Host': 'www.urbanhome.ch',
     'Origin': 'http://www.urbanhome.ch',
-<<<<<<< HEAD
     'Referer': 'http://www.urbanhome.ch/search/rent/living/apartment/zh/winterthur',
-=======
->>>>>>> description
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.90 Safari/537.36',
     'X-Requested-With': 'XMLHttpRequest'
 }

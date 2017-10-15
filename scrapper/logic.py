@@ -237,8 +237,6 @@ class GetData:
         try:
             divs = self.rbs.bs.find("div", {"class": "fl pr c m71", "id": "xGd"}).findAll("div", {"class": "cb"})
 
-<<<<<<< HEAD
-=======
             for div in divs:
                 if div.find("div", {"class": "fl pr c m71"}):
                     current_template["details"]["description"] = div.find("div", {"class": "fl pr c m71"}).get_text()
@@ -246,7 +244,6 @@ class GetData:
             logging.error(current_template["origSource"] + " - "
                           + str(e) + "\n - " + self.add_description_data.__name__)
 
->>>>>>> description
     def add_images_data(self, current_template):
         """Adds images urls to the template"""
         base_url = "http://www.urbanhome.ch"
