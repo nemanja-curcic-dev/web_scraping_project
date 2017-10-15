@@ -12,7 +12,7 @@ from scrapper.helpers import find_number, find_floor
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
                     format='%(asctime)s - %(levelname)s: \n- %(message)s',
-                    level=logging.WARNING)
+                    level=logging.INFO)
 
 
 class RequestBs:
@@ -188,22 +188,25 @@ class GetData:
                 if template["origSource"] == link:
                     current_json_template = template
 
-            # self.add_to_equipment(current_json_template)
-            # self.add_price_data(current_json_template)
-            # self.add_main_data(current_json_template)
-            # self.add_images_data(current_json_template)
+            self.add_to_equipment(current_json_template)
+            self.add_price_data(current_json_template)
+            self.add_main_data(current_json_template)
+            self.add_images_data(current_json_template)
             self.add_description_data(current_json_template)
             print("Current page: ", link)
 
     def add_description_data(self, current_template):
         """Add description to template"""
 
-        div = self.rbs.bs.find("div", {"class": "fl pr c m71", "id": "xGd"}).find("div", {"class": "cb pb15"})
+        try:
+            divs = self.rbs.bs.find("div", {"class": "fl pr c m71", "id": "xGd"}).findAll("div", {"class": "cb"})
 
-        if div is None:
-            logging.warning(current_template["origSource"])
-
-        print(div)
+            for div in divs:
+                if div.find("div", {"class": "fl pr c m71"}):
+                    current_template["details"]["description"] = div.find("div", {"class": "fl pr c m71"}).get_text()
+        except AttributeError as e:
+            logging.error(current_template["origSource"] + " - "
+                          + str(e) + "\n - " + self.add_description_data.__name__)
 
     def add_images_data(self, current_template):
         """Adds images urls to the template"""
@@ -216,7 +219,7 @@ class GetData:
                 image_url = base_url + a["href"]
                 current_template["media"]["gallery"].append(image_url)
         except AttributeError as e:
-            logging.error(current_template["origSource"] + " - no images found - "
+            logging.info(current_template["origSource"] + " - no images found - "
                           + str(e) + "\n - " + self.add_images_data.__name__)
 
     def add_price_data(self, current_template):
