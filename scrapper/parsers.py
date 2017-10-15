@@ -10,7 +10,7 @@ def find_number(s):
 
 def find_number_concatenated(s):
     """Finds the number if is next to some other character"""
-    floor = ""
+    floor = 0
     for c in s:
         if c.isdigit():
             floor += c
