@@ -8,14 +8,13 @@ def find_number(s):
     return digit
 
 
-def find_floor(s):
+def find_number_concatenated(s):
+    """Finds the number if is next to some other character"""
     floor = ""
-
     for c in s:
         if c.isdigit():
             floor += c
-
     return floor
 
 if __name__ == '__main__':
-    print(find_floor("Etage: 20. Stock"))
+    print(find_number_concatenated("Etage: 20. Stock"))

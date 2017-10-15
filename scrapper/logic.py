@@ -3,11 +3,11 @@ from requests import ConnectionError, HTTPError, Timeout
 import json
 from bs4 import BeautifulSoup
 import copy
-from scrapper.headers_payload_etc import additional_features_dict
+from scrapper.headers_payload_etc import additional_features_dict, main_features_dict
 import logging
 import re
 import sys
-from scrapper.helpers import find_number, find_floor
+from scrapper.helpers import find_number, find_number_concatenated
 
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
@@ -134,19 +134,22 @@ class GetData:
             except AttributeError as e:
                 logging.error(self.json_templates_list[index]["origSource"] + str(e))
 
-            # get the address and zip code
+            # get the address, zip code and city
             try:
                 div_street_zip = div.find('div', {'class': 'a ay'})
                 street = bytes(div_street_zip.select('p')[0].get_text(), encoding='latin_1').decode('utf-8')
-
-                zip_code = div_street_zip.select('p')[1].get_text().split(' ')[0]
+                zip_code_and_street = div_street_zip.select('p')[1].get_text().split()
+                zip_code = zip_code_and_street[0]
+                city = zip_code_and_street[1]
             except AttributeError as e:
                 logging.error(self.json_templates_list[index]["origSource"] + str(e))
                 zip_code = 0
                 street = ""
+                city = ""
 
             self.json_templates_list[index]['address']['zipCode'] = zip_code
             self.json_templates_list[index]['address']['street'] = street
+            self.json_templates_list[index]["address"]["city"] = city
 
             # get space (number of m2) and floor
             div_m2 = div.find('div', {'class': 'a tc'})
@@ -169,7 +172,11 @@ class GetData:
                 # get total price
                 price = div.find("h2", {"class": "a"}).get_text()
                 price = re.findall("\d", price)
-                self.json_templates_list[index]["price"]["rentPrice"] = int("".join(price))
+
+                if self.json_templates_list[index]["isRent"]:
+                    self.json_templates_list[index]["price"]["rentPrice"] = int("".join(price))
+                elif self.json_templates_list[index]["isSale"]:
+                    self.json_templates_list[index]["price"]["salePrice"] = int("".join(price))
             except (AttributeError, ValueError) as e:
                 logging.error(self.json_templates_list[index]["origSource"] + " - " + str(e) +
                               "\n - " + self.get_first_page_data.__name__)
@@ -188,12 +195,41 @@ class GetData:
                 if template["origSource"] == link:
                     current_json_template = template
 
-            # self.add_to_equipment(current_json_template)
-            # self.add_price_data(current_json_template)
-            # self.add_main_data(current_json_template)
-            # self.add_images_data(current_json_template)
+            self.add_to_equipment(current_json_template)
+            self.add_price_data(current_json_template)
+            self.add_main_data(current_json_template)
+            self.add_images_data(current_json_template)
             self.add_description_data(current_json_template)
+            self.add_environment_data(current_json_template)
             print("Current page: ", link)
+
+    def add_environment_data(self, current_template):
+        """Adds data about environment"""
+
+        try:
+            div_li = self.rbs.bs.find("div", {"class": "a d", "id": "xInfos"})\
+                .findAll("li", {"class": "cb pt15"})
+
+            for li in div_li:
+                h2 = li.find("h2")
+                if h2:
+                    if h2.get_text() == "Umgebung" or h2.get_text() == "Environment":
+                        for div in li.findAll("div"):
+                            d = div.get_text()
+
+                            if d != "":
+                                self.testing.append(d.split()[0])
+                                if re.match("Autobahn", d):
+                                    current_template["distances"]["highway"] = find_number_concatenated(d)
+                                elif re.match("Schule", d):
+                                    current_template["distances"]["primarySchool"] = find_number_concatenated(d)
+                                elif re.match("Öffentl", d):
+                                    current_template["distances"]["busStation"] = find_number_concatenated(d)
+                                elif re.match("Einkaufen", d):
+                                    current_template["distances"]["shopping"] = find_number_concatenated(d)
+        except AttributeError as e:
+            logging.error(current_template["origSource"] + " - " +
+                          str(e) + "\n - " + self.add_environment_data.__name__)
 
     def add_description_data(self, current_template):
         """Add description to template"""
@@ -202,8 +238,6 @@ class GetData:
 
         if div is None:
             logging.warning(current_template["origSource"])
-
-        print(div)
 
     def add_images_data(self, current_template):
         """Adds images urls to the template"""
@@ -222,43 +256,54 @@ class GetData:
     def add_price_data(self, current_template):
         """Adds data about price to the template"""
 
-        # find div that wraps info about price
-        div_price = self.rbs.bs.find("div", {"id": "xInfos"}).find("div", {"class": "a"})
-
-        # get price
-        extra_cost = div_price.select('div')[1].get_text()
         expenses = 0
 
-        if re.match("Nebenkosten", extra_cost) or re.match("Extra cost", extra_cost):
-            extra_cost = int("".join(re.findall('\d', extra_cost)))
-            expenses = extra_cost
-        else:
-            logging.info(current_template["origSource"] + ": couldn't locate expenses")
+        # find div that wraps info about price
+        try:
+            div_price = self.rbs.bs.find("div", {"id": "xInfos"}).find("div", {"class": "a"})
 
-        total_cost = current_template["price"]["rentPrice"]
-        net_rent = total_cost - expenses
-        current_template["price"]["expenses"] = expenses
-        current_template["price"]["rentNetPrice"] = net_rent
+            # get price
+            extra_cost = div_price.select('div')[1].get_text()
+
+            if re.match("Nebenkosten", extra_cost) or re.match("Extra cost", extra_cost):
+                extra_cost = int("".join(re.findall('\d', extra_cost)))
+                expenses = extra_cost
+            else:
+                logging.info(current_template["origSource"] + ": couldn't locate expenses")
+        except AttributeError as e:
+            logging.error(current_template["origSource"] + " - "
+                          + str(e) + "\n - " + self.add_price_data.__name__)
+
+        # add data only if is for rent
+        if current_template["isRent"]:
+            total_cost = current_template["price"]["rentPrice"]
+            net_rent = total_cost - expenses
+            current_template["price"]["expenses"] = expenses
+            current_template["price"]["rentNetPrice"] = net_rent
 
     def add_main_data(self, current_template):
         """Adds data about space, floors, date available, etc."""
-        div_wrapper = self.rbs.bs.find("div", {"id": "xInfos"}).find("li", {"class": "cb pt15"})
         data = []
 
-        # get available data about object
-        for div in div_wrapper.findAll("div", {"class": "cb"}):
-            if div.get_text() != "":
-                data.append(div.get_text())
+        try:
+            div_wrapper = self.rbs.bs.find("div", {"id": "xInfos"}).find("li", {"class": "cb pt15"})
+
+            # get available data about object
+            for div in div_wrapper.findAll("div", {"class": "cb"}):
+                if div.get_text() != "":
+                    data.append(div.get_text())
+        except AttributeError as e:
+            logging.error(current_template["origSource"] + " - "
+                          + str(e) + "\n - " + self.add_main_data.__name__)
 
         for d in data:
-
             if d is not None:
                 d = d.strip()
                 if re.match("Zimmer", d):
                     rooms = d.split()[1]
                     current_template["mainFeatures"]["rooms"] = rooms
                 elif re.match("Etage", d) and not re.match("Etagen im Haus", d):
-                    floor = find_floor(d)
+                    floor = find_number_concatenated(d)
                     if floor == 0:
                         floor = "ground floor"
                     current_template["mainFeatures"]["floor"] = floor
@@ -303,11 +348,16 @@ class GetData:
             if div.h2.get_text() == "Ausstattung" or div.h2.get_text() == "Equipment":
 
                 uls = div.findAll('ul', {'class': 'pb15'})
+                number_of = 0
 
                 for u in uls:
                     eq = u.li.ul.children
                     for e in eq:
                         feature = e.get_text()[1:].strip()
+
+                        if re.match('^(\d)', feature):
+                            number_of = find_number_concatenated(feature)
+                            feature = feature.split()[1]
 
                         if feature in additional_features_dict:
 
@@ -329,6 +379,10 @@ class GetData:
 
                             elif additional_features_dict[feature] in current_template["additionalFeatures"]["energy"]:
                                 current_template["additionalFeatures"]["energy"][additional_features_dict[feature]] = True
+
+                            # number of toilets, showers, etc.
+                            if feature in main_features_dict:
+                                current_template["mainFeatures"][main_features_dict[feature]] = number_of
             else:
                 logging.info(current_template["origSource"] + ": no data about additional features found")
         except AttributeError as e:

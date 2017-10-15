@@ -173,7 +173,6 @@ request_headers = {
     'Content-Type': 'application/json; charset=UTF-8;',
     'Host': 'www.urbanhome.ch',
     'Origin': 'http://www.urbanhome.ch',
-    'Cookie': 'ASP.NET_SessionId=xhzpr4z3t34sc2nfph5sgzcu; _gat=1; session=xhzpr4z3t34sc2nfph5sgzcu; language=EN; __utma=18033599.1252142860.1507755211.1507755211.1507755211.1; __utmb=18033599.8.10.1507755211; __utmc=18033599; __utmz=18033599.1507755211.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _ga=GA1.2.1252142860.1507755211; _gid=GA1.2.1290903954.1507755213',
     'Referer': 'http://www.urbanhome.ch/search/rent/living/apartment/zh/winterthur',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.90 Safari/537.36',
     'X-Requested-With': 'XMLHttpRequest'
@@ -241,4 +240,11 @@ additional_features_dict = {
     "Cheminée": "fireplace",
     "Bergsicht": "view",
     "Terrasse": "balcony"
+}
+
+main_features_dict = {
+    "Badewanne": "baths",
+    "WC": "toilets",
+    "Dusche": "showers",
+    "Balkon": "balcony"
 }
