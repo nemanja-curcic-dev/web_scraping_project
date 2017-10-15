@@ -7,7 +7,7 @@ from scrapper.headers_payload_etc import additional_features_dict, main_features
 import logging
 import re
 import sys
-from scrapper.helpers import find_number, find_number_concatenated
+from scrapper.parsers import find_number, find_number_concatenated
 
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
@@ -94,9 +94,6 @@ class GetData:
         self.rbs = rbs
         self.links = []
 
-        # for testing
-        self.testing = []
-
         # creates list of json templates to be filled with data
         # it has same number of elements as the number of links found
         for i in range(int(self.rbs.response.json()["Count"])):
@@ -152,18 +149,21 @@ class GetData:
             self.json_templates_list[index]["address"]["city"] = city
 
             # get space (number of m2) and floor
-            div_m2 = div.find('div', {'class': 'a tc'})
-            space_floor = div_m2.select('p')
-
+            space = 0
             floor = 0
 
-            if len(div_m2.select('p')) == 2:
-                space = int(space_floor[1].get_text().split('m')[0])
-            else:
-                space = 0
+            try:
+                div_m2 = div.find('div', {'class': 'a tc'})
+                space_floor = div_m2.select('p')
 
-            if space_floor[0].get_text().split('.')[0].isdigit():
-                floor = int(space_floor[0].get_text().split('.')[0])
+                if len(div_m2.select('p')) == 2:
+                    space = int(space_floor[1].get_text().split('m')[0])
+
+                if space_floor[0].get_text().split('.')[0].isdigit():
+                    floor = int(space_floor[0].get_text().split('.')[0])
+            except AttributeError as e:
+                logging.error(self.json_templates_list[index]["origSource"] +
+                              " - " + str(e) + "\n - " + self.get_first_page_data.__name__)
 
             self.json_templates_list[index]["mainFeatures"]["livingSpace"] = space
             self.json_templates_list[index]["mainFeatures"]["floor"] = floor
@@ -201,6 +201,8 @@ class GetData:
             self.add_images_data(current_json_template)
             self.add_description_data(current_json_template)
             self.add_environment_data(current_json_template)
+
+            # for user to see that script is running
             print("Current page: ", link)
 
     def add_environment_data(self, current_template):
@@ -218,7 +220,6 @@ class GetData:
                             d = div.get_text()
 
                             if d != "":
-                                self.testing.append(d.split()[0])
                                 if re.match("Autobahn", d):
                                     current_template["distances"]["highway"] = find_number_concatenated(d)
                                 elif re.match("Schule", d):
