@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+#  -*- encoding: utf8 -*-
+
+
 def find_number(s):
     """Finds the number in string and returns it"""
     split = s.split()

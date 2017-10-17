@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+#  -*- encoding: utf8 -*-
+
+
 # template for json
 json_template = {
 	"GetSetBuiltAt": 0,

@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+#  -*- encoding: utf8 -*-
+
+
 from logic import RequestBs, GetData
 from headers_payload_etc import payload, request_headers, json_template
 
