@@ -3,11 +3,11 @@ from requests import ConnectionError, HTTPError, Timeout
 import json
 from bs4 import BeautifulSoup
 import copy
-from scrapper.headers_payload_etc import additional_features_dict, main_features_dict
+from headers_payload_etc import additional_features_dict, main_features_dict
 import logging
 import re
 import sys
-from scrapper.parsers import find_number, find_number_concatenated
+from parsers import find_number, find_number_concatenated
 
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
