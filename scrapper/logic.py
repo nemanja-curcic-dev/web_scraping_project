@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#  -*- encoding: utf8 -*-
+
 import requests
 from requests import ConnectionError, HTTPError, Timeout
 import json
