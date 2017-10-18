@@ -6,11 +6,11 @@ from requests import ConnectionError, HTTPError, Timeout
 import json
 from bs4 import BeautifulSoup
 import copy
-from headers_payload_etc import additional_features_dict, main_features_dict
+from .headers_payload_etc import additional_features_dict, main_features_dict
 import logging
 import re
 import sys
-from parsers import find_number, find_number_concatenated
+from .parsers import find_number, find_number_concatenated
 
 # logging configuration
 logging.basicConfig(filename='../error_log.log',
@@ -323,7 +323,7 @@ class GetData:
                     floor_space = find_number(d)
                     current_template["mainFeatures"]["floorSpace"] = floor_space
                 elif re.match("Raumhöhe", d):
-                    current_template["mainFeatures"]["roomHeight"] = ""
+                    current_template["mainFeatures"]["roomHeight"] = find_number_concatenated(d)
                 elif re.match("Verfügbar", d):
                     date = d.split()[1]
                     if not date[0].isdigit():
