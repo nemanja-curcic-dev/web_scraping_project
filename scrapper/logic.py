@@ -102,7 +102,7 @@ class GetData:
         for i in range(int(self.rbs.response.json()["Count"])):
             self.json_templates_list.append(copy.deepcopy(json_template))
 
-    def get_links(self):
+    def _get_links(self):
         """Sets all the links that are found for current selection"""
 
         for link in self.rbs.bs.findAll("a", {"class": "b"}):
@@ -112,7 +112,7 @@ class GetData:
         """Gets the data available on the search page and sets all the links found"""
 
         # set links for pages
-        self.get_links()
+        self._get_links()
 
         # get div with data about name, price, address, etc.
         # im for loop divs are with class 'a ax' that wraps the desired data
@@ -198,17 +198,17 @@ class GetData:
                 if template["origSource"] == link:
                     current_json_template = template
 
-            self.add_to_equipment(current_json_template)
-            self.add_price_data(current_json_template)
-            self.add_main_data(current_json_template)
-            self.add_images_data(current_json_template)
-            self.add_description_data(current_json_template)
-            self.add_environment_data(current_json_template)
+            self._add_to_equipment(current_json_template)
+            self._add_price_data(current_json_template)
+            self._add_main_data(current_json_template)
+            self._add_images_data(current_json_template)
+            self._add_description_data(current_json_template)
+            self._add_environment_data(current_json_template)
 
             # for user to see that script is running
             print("Current page: ", link)
 
-    def add_environment_data(self, current_template):
+    def _add_environment_data(self, current_template):
         """Adds data about environment"""
 
         try:
@@ -233,9 +233,9 @@ class GetData:
                                     current_template["distances"]["shopping"] = find_number_concatenated(d)
         except AttributeError as e:
             logging.error(current_template["origSource"] + " - " +
-                          str(e) + "\n - " + self.add_environment_data.__name__)
+                          str(e) + "\n - " + self._add_environment_data.__name__)
 
-    def add_description_data(self, current_template):
+    def _add_description_data(self, current_template):
         """Add description to template"""
 
         try:
@@ -246,9 +246,9 @@ class GetData:
                     current_template["details"]["description"] = div.find("div", {"class": "fl pr c m71"}).get_text()
         except AttributeError as e:
             logging.error(current_template["origSource"] + " - "
-                          + str(e) + "\n - " + self.add_description_data.__name__)
+                          + str(e) + "\n - " + self._description_data.__name__)
 
-    def add_images_data(self, current_template):
+    def _add_images_data(self, current_template):
         """Adds images urls to the template"""
         base_url = "http://www.urbanhome.ch"
 
@@ -260,9 +260,9 @@ class GetData:
                 current_template["media"]["gallery"].append(image_url)
         except AttributeError as e:
             logging.info(current_template["origSource"] + " - no images found - "
-                          + str(e) + "\n - " + self.add_images_data.__name__)
+                          + str(e) + "\n - " + self._add_images_data.__name__)
 
-    def add_price_data(self, current_template):
+    def _add_price_data(self, current_template):
         """Adds data about price to the template"""
 
         expenses = 0
@@ -281,7 +281,7 @@ class GetData:
                 logging.info(current_template["origSource"] + ": couldn't locate expenses")
         except AttributeError as e:
             logging.error(current_template["origSource"] + " - "
-                          + str(e) + "\n - " + self.add_price_data.__name__)
+                          + str(e) + "\n - " + self._add_price_data.__name__)
 
         # add data only if is for rent
         if current_template["isRent"]:
@@ -290,7 +290,7 @@ class GetData:
             current_template["price"]["expenses"] = expenses
             current_template["price"]["rentNetPrice"] = net_rent
 
-    def add_main_data(self, current_template):
+    def _add_main_data(self, current_template):
         """Adds data about space, floors, date available, etc."""
         data = []
 
@@ -303,7 +303,7 @@ class GetData:
                     data.append(div.get_text())
         except AttributeError as e:
             logging.error(current_template["origSource"] + " - "
-                          + str(e) + "\n - " + self.add_main_data.__name__)
+                          + str(e) + "\n - " + self._add_main_data.__name__)
 
         for d in data:
             if d is not None:
@@ -346,7 +346,7 @@ class GetData:
                     number_of_floors = find_number(d)
                     current_template["mainFeatures"]["floors"] = number_of_floors
 
-    def add_to_equipment(self, current_template):
+    def _add_to_equipment(self, current_template):
         """Adds data about additional features (heating, exterior, interior, etc.) to template"""
 
         # get the div that wraps data about equipment (additional features)
@@ -396,4 +396,4 @@ class GetData:
                 logging.info(current_template["origSource"] + ": no data about additional features found")
         except AttributeError as e:
             logging.error(current_template["origSource"] + ' - ' + str(e) +
-                          '\n - Error occurred at: ' + self.add_to_equipment.__name__)
+                          '\n - Error occurred at: ' + self._add_to_equipment.__name__)
