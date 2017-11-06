@@ -4,6 +4,7 @@
 
 from scrapper.logic import RequestBs, GetData
 from scrapper.headers_payload_etc import payload, request_headers, json_template
+import re
 
 # create request
 request_bs = RequestBs(payload, request_headers,
